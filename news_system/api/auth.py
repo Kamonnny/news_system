@@ -2,7 +2,6 @@ from flask import Blueprint, request
 from flask.views import MethodView
 from pydantic import BaseModel, Field, EmailStr
 
-
 from news_system.extensions import db
 from news_system.model.users import Users
 from news_system.utils.network import response_json
@@ -17,10 +16,17 @@ class OauthPostModel(BaseModel):
 
 class OauthAPI(MethodView):
 
+    # noinspection PyUnresolvedReferences
     @staticmethod
     def post() -> response_json:
         body = OauthPostModel(**request.get_json())
-        # user = Users.query.
+        user = Users.query.filter_by(username=body.username).first()
+        if user is None:
+            return response_json(code=404, msg="用户不存在或者密码错误")
+
+        if not user.validate_password(body.password):
+            return response_json(code=404, msg="用户不存在或者密码错误")
+
         return response_json()
 
 
