@@ -1,23 +1,6 @@
-from flask import request, jsonify
+import time
 
-from news_system.api_error import APIError
-
-
-def get_request_body(*keys) -> list:
-    """
-    获取请求头的 body 数据
-    :param keys:
-    :return:
-    """
-    try:
-        value = []
-        data = request.get_json()
-        for key in keys:
-            value.append(data[key])
-    except (KeyError, TypeError):
-        raise APIError("缺少参数")
-    else:
-        return value
+from flask import jsonify
 
 
 def response_json(data: dict = None, code: int = 200, msg: str = "ok") -> jsonify:
@@ -30,4 +13,4 @@ def response_json(data: dict = None, code: int = 200, msg: str = "ok") -> jsonif
     """
     if data is None:
         data = {}
-    return jsonify(data=data, code=code, msg=msg)
+    return jsonify(data=data, code=code, msg=msg, now_ts=int(time.time()))

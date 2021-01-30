@@ -2,9 +2,9 @@ from os import getenv
 from time import time
 
 from flask import request
-from itsdangerous import TimedJSONWebSignatureSerializer, BadSignature
+from itsdangerous import BadSignature, TimedJSONWebSignatureSerializer
 
-from news_system.api_error import APIError
+from news_system import APIError
 from news_system.redis import Redis
 from news_system.utils.common import upper_md5
 
@@ -17,9 +17,10 @@ def get_token() -> str:
     try:
         token_type, token = request.headers["Authorization"].split(None, 1)
     except (KeyError, ValueError):
-        raise APIError("请重新登录", 401)
+        raise APIError(msg="请重新登录", code=401)
     else:
-        if token == "null" or token_type.lower() != "bearer": raise APIError("请重新登录", 401)
+        if token == "null" or token_type.lower() != "bearer":
+            raise APIError(msg="请重新登录", code=401)
         return token
 
 
@@ -71,6 +72,6 @@ def validate_token(token: str, token_type: str = "REFRESH_TOKEN") -> dict:
     try:
         data = s.loads(token)
     except BadSignature:
-        raise APIError("请重新登录", code=401)
+        raise APIError(msg="请重新登录", code=401)
     else:
         return data

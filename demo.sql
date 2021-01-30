@@ -11,6 +11,7 @@ create table users
     create_time datetime,
     update_time datetime,
     status      varchar(32),
+    is_admin    tinyint comment '是否是管理员',
     index user_name (user_name),
     index create_time (create_time)
 );
