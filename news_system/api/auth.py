@@ -1,10 +1,11 @@
 from flask import Blueprint, request
 from flask.views import MethodView
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 from news_system.extensions import db
 from news_system.model.users import Users
 from news_system.utils.network import response_json
+from news_system.utils.token import create_token
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -27,7 +28,7 @@ class OauthAPI(MethodView):
         if not user.validate_password(body.password):
             return response_json(code=404, msg="用户不存在或者密码错误")
 
-        return response_json()
+        return response_json(msg="登录成功", data=create_token(user))
 
 
 class RegisterPostModel(BaseModel):

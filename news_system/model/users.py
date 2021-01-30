@@ -12,10 +12,10 @@ class Users(db.Model):
     username = db.Column(db.String(32))
     password = db.Column(db.String(255))
     email = db.Column(db.String(64))
+    status = db.Column(db.Boolean, default=True)
+    is_admin = db.Column(db.Boolean, default=False)
     create_time = db.Column(db.DateTime, default=datetime.now)
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    status = db.Column(db.Boolean(), default=True)
-    is_admin = db.Column(db.Boolean(), default=False)
 
     def set_password(self, password: str) -> NoReturn:
         """设置密码

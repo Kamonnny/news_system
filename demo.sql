@@ -17,40 +17,30 @@ create table users
     index create_time (create_time)
 );
 
-#
-# create table user_groups
-# (
-#     id          int unsigned primary key auto_increment comment 'id 为非负整型',
-#     group_name  varchar(32),
-#     power       json,
-#     create_time datetime,
-#     update_time datetime
-# );
-#
-# create table powers
-# (
-#     id          int unsigned primary key auto_increment,
-#     power_name  varchar(64),
-#     create_time datetime
-# );
-#
-# create table news
-# (
-#     id          int unsigned primary key auto_increment,
-#     title       varchar(255),
-#     content     text,
-#     tag_id      int unsigned comment '标签id',
-#     create_time datetime,
-#     update_time datetime,
-#     status      varchar(32)
-# );
-#
-# create table tags
-# (
-#     id          int unsigned primary key auto_increment,
-#     tag         varchar(16) comment '标签名',
-#     create_time datetime
-# ) comment '标签';
+
+create table news
+(
+    id          int unsigned primary key auto_increment,
+    title       varchar(255),
+    content     text,
+    tag_id      int unsigned comment '标签id',
+    create_time datetime,
+    update_time datetime,
+    status      tinyint,
+    fulltext key title_content_fulltext (title, content),
+    index tag_id (tag_id),
+    index create_time (create_time)
+);
+
+create table tags
+(
+    id          int unsigned primary key auto_increment,
+    tag         varchar(16) comment '标签名',
+    create_time datetime,
+    update_time datetime,
+    status      tinyint
+) comment '标签';
+
 #
 # create table comment
 # (

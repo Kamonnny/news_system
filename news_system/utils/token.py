@@ -1,12 +1,10 @@
 from os import getenv
-from time import time
 
 from flask import request
 from itsdangerous import BadSignature, TimedJSONWebSignatureSerializer
 
-from news_system import APIError
-from news_system.utils.redis import Redis
-from news_system.utils.common import upper_md5
+from news_system.exception import APIError
+from news_system.model.users import Users
 
 
 def get_token() -> str:
@@ -24,32 +22,18 @@ def get_token() -> str:
         return token
 
 
-def _access_token(user) -> str:
-    """
-    生成访问令牌
-    :param user:
-    :return:
-    """
-    token = f"{user.phone}|" + upper_md5(f"{user.username}{time()}")
-
-    Redis.hset(f"session:{token}", "id", user.id)
-    Redis.hset(f"session:{token}", "phone", user.phone)
-    Redis.expire(f"session:{token}", 3600)
-    return token
-
-
-def create_token(user) -> dict:
+def create_token(user: Users) -> dict:
     """
     生成令牌
     """
 
     return {
-        "accessToken": _access_token(user),
-        "refreshToken": generate_token({"phone": user.phone})
+        "access_token": generate_token({"id": user.id}),
+        "refresh_token": generate_token({"id": user.id}, token_type="REFRESH_TOKEN", expires_in=2592000)
     }
 
 
-def generate_token(data: dict, *, token_type: str = "REFRESH_TOKEN", expires_in: int = 2592000) -> str:
+def generate_token(data: dict, *, token_type: str = "ACCESS_TOKEN", expires_in: int = 3600) -> str:
     """
     生成令牌
     :param data: 令牌的内容
