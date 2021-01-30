@@ -5,7 +5,7 @@ from flask import request
 from itsdangerous import BadSignature, TimedJSONWebSignatureSerializer
 
 from news_system import APIError
-from news_system.redis import Redis
+from news_system.utils.redis import Redis
 from news_system.utils.common import upper_md5
 
 

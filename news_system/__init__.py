@@ -22,6 +22,7 @@ def create_app(config_name: Optional[str] = None) -> Flask:
     app = Flask('new_system')
     app.config.from_pyfile('news_system/settings.py')
     register_blueprints(app)
+    register_extensions(app)
     register_errors(app)
     return app
 

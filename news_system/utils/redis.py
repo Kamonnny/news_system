@@ -6,7 +6,7 @@ from redis import StrictRedis
 class Redis:
 
     @staticmethod
-    def _get_r():
+    def __get_r():
         """
         连接 Redis 连接池
         :return:
@@ -23,7 +23,7 @@ class Redis:
         :param expire:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.set(key, value, ex=expire)
 
     @classmethod
@@ -33,7 +33,7 @@ class Redis:
         :param key:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         value = r.get(key)
         return value
 
@@ -46,7 +46,7 @@ class Redis:
         :param value:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.hset(name, key, value)
 
     @classmethod
@@ -57,7 +57,7 @@ class Redis:
         :param key:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         value = r.hget(name, key)
         return value
 
@@ -69,7 +69,7 @@ class Redis:
         :param name:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         value = r.hmget(name, keys)
         return value
 
@@ -80,7 +80,7 @@ class Redis:
         :param name:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         return r.hgetall(name)
 
     @classmethod
@@ -91,7 +91,7 @@ class Redis:
         :param key:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.hdel(name, key)
 
     @classmethod
@@ -102,7 +102,7 @@ class Redis:
         :param expire:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.expire(name, expire)
 
     @classmethod
@@ -112,7 +112,7 @@ class Redis:
         :param names:
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.delete(*names)
 
     @classmethod
@@ -121,5 +121,5 @@ class Redis:
         清空整个 Redis
         :return:
         """
-        r = cls._get_r()
+        r = cls.__get_r()
         r.flushall()

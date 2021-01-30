@@ -5,14 +5,14 @@ use news_system;
 create table users
 (
     id          int unsigned primary key auto_increment,
-    user_name   varchar(32),
+    username   varchar(32),
     password    varchar(255),
     email       varchar(64),
     create_time datetime,
     update_time datetime,
-    status      varchar(32),
+    status      tinyint,
     is_admin    tinyint comment '是否是管理员',
-    index user_name (user_name),
+    index user_name (username),
     index create_time (create_time)
 );
 
