@@ -21,6 +21,7 @@ class OauthAPI(MethodView):
         return response_json()
 
 
+# 注册
 class RegisterPostModel(BaseModel):
     user_name: str = Field(min_length=1, max_length=30)
     password: str = Field(min_length=6)
