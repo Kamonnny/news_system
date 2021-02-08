@@ -41,13 +41,13 @@ create table tags
     status      tinyint
 ) comment '标签';
 
-#
-# create table comment
-# (
-#     id          int unsigned primary key auto_increment,
-#     news_id     int unsigned,
-#     comment     varchar(255),
-#     create_time datetime,
-#     update_time datetime,
-#     status      varchar(32)
-# ) comment '评论';
+
+create table comments
+(
+    id          int unsigned primary key auto_increment,
+    news_id     int unsigned,
+    comment     varchar(255),
+    create_time datetime,
+    update_time datetime,
+    status      varchar(32)
+) comment '评论';

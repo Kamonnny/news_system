@@ -6,8 +6,9 @@ from flask.views import MethodView
 from pydantic import BaseModel, Field
 
 from news_system.extensions import db
-from news_system.model.tags import Tags
+from news_system.model.comments import Comments
 from news_system.model.news import News
+from news_system.model.tags import Tags
 from news_system.utils.network import response_json
 
 news_bp = Blueprint("news", __name__)
@@ -39,7 +40,7 @@ class TagsAPI(MethodView):
     @staticmethod
     def get() -> response_json:
         query = FilterGetModel(**request.args)
-        tags_query = Tags.query
+        tags_query = Tags.query.filter_by(status=0)
         if query.filter is not None:
             tags_query = tags_query.filter(Tags.tag.like(f'%{query.filter}%'))
 
@@ -77,7 +78,7 @@ class NewsAPI(MethodView):
     @staticmethod
     def get() -> response_json:
         query = FilterGetModel(**request.args)
-        news_query = News.query
+        news_query = News.query.filter_by(status=0)
         if query.filter is not None:
             news_query = news_query.filter(News.tag.like(f'%{query.filter}%'))
 
@@ -106,7 +107,7 @@ class NewAPI(MethodView):
     @staticmethod
     def put(news_id: int) -> response_json:
         body = NewsModel(**request.get_json())
-        new = News.query.filter_by(id=news_id).first()
+        new = News.query.filter_by(id=news_id, status=0).first()
         if new is None:
             return response_json(code=400, msg="该新闻不存在")
 
@@ -118,6 +119,35 @@ class NewAPI(MethodView):
         return response_json(msg=f"{body.title} 修改成功")
 
 
+class CommentPostModel(BaseModel):
+    comment: str = Field(max_length=255)
+
+
+class CommentsAPI(MethodView):
+    # noinspection PyUnresolvedReferences
+    @staticmethod
+    def get(news_id: int) -> response_json:
+        query = FilterGetModel(**request.args)
+        comments = Comments.query.filter_by(news_id=news_id, status=0).paginate(page=query.page, per_page=query.size)
+        items = [comment.to_dict() for comment in comments.items]  # 列表生成器
+        return response_json(data={
+            'items': items,
+            'page': comments.page,
+            'size': comments.per_page,
+            'pages': comments.pages,
+            'total': comments.total
+        })
+
+    @staticmethod
+    def post(news_id: int) -> response_json:
+        body = CommentPostModel(**request.get_json())
+        comment = Comments(comment=body.comment, news_id=news_id)
+        db.session.add(comment)
+        db.session.commit()
+        return response_json(msg=f"评论成功")
+
+
 news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("PUT",))
+news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
