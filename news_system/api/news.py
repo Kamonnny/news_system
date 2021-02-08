@@ -63,7 +63,7 @@ class TagsAPI(MethodView):
         return response_json(msg=f"{body.tag} 创建成功")
 
 
-class NewsPostModel(BaseModel):
+class NewsModel(BaseModel):
     """ 新增新闻的参数校验 """
     title: str = Field(max_length=255)
     content: str
@@ -94,12 +94,30 @@ class NewsAPI(MethodView):
 
     @staticmethod
     def post() -> response_json:
-        body = NewsPostModel(**request.get_json())
+        body = NewsModel(**request.get_json())
         new = News(**body.dict())
         db.session.add(new)
         db.session.commit()
         return response_json(msg=f"{body.title} 创建成功")
 
 
+class NewAPI(MethodView):
+    # noinspection PyUnresolvedReferences
+    @staticmethod
+    def put(news_id: int) -> response_json:
+        body = NewsModel(**request.get_json())
+        new = News.query.filter_by(id=news_id).first()
+        if new is None:
+            return response_json(code=400, msg="该新闻不存在")
+
+        new.title = body.title
+        new.content = body.content
+        new.tag_id = body.tag_id
+        db.session.add(new)
+        db.session.commit()
+        return response_json(msg=f"{body.title} 修改成功")
+
+
 news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET", "POST"))
+news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("PUT",))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
