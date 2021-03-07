@@ -107,6 +107,15 @@ class NewsAPI(MethodView):
 class NewAPI(MethodView):
     # noinspection PyUnresolvedReferences
     @staticmethod
+    def get(news_id: int) -> response_json:
+        new = News.query.filter_by(id=news_id, status=0).first()
+        if new is None:
+            return response_json(code=400, msg="该新闻不存在")
+
+        return response_json(data=new.to_dict("main"))
+
+    # noinspection PyUnresolvedReferences
+    @staticmethod
     def put(news_id: int) -> response_json:
         body = NewsModel(**request.get_json())
         new = News.query.filter_by(id=news_id, status=0).first()
@@ -150,6 +159,6 @@ class CommentsAPI(MethodView):
 
 
 news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET", "POST"))
-news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("PUT",))
+news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT",))
 news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
