@@ -25,7 +25,7 @@ create table news
     title       varchar(255),
     content     text,
     tag_id      int unsigned comment '标签id',
-    views       bigint unsigned,
+    views       bigint unsigned default 0,
     create_time datetime,
     update_time datetime,
     status      tinyint,

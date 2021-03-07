@@ -17,6 +17,7 @@ news_bp = Blueprint("news", __name__)
 @unique
 class SizeEnum(IntEnum):
     """ 枚举Size """
+    five = 5
     ten = 10
     twenty = 20
     fifty = 50
@@ -84,7 +85,7 @@ class NewsAPI(MethodView):
             news_query = news_query.filter(News.tag.like(f'%{query.filter}%'))
 
         news = news_query.paginate(page=query.page, per_page=query.size)
-        items = [new.to_dict(level="tag") for new in news.items]  # 列表生成器
+        items = [new.to_dict(level="main_list") for new in news.items]  # 列表生成器
 
         return response_json(data={
             'items': items,
