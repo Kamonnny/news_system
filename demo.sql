@@ -2,6 +2,7 @@ create database news_system;
 
 use news_system;
 
+drop table if exists users;
 create table users
 (
     id          int unsigned primary key auto_increment,
@@ -17,13 +18,14 @@ create table users
     index create_time (create_time)
 );
 
-
+drop table if exists news;
 create table news
 (
     id          int unsigned primary key auto_increment,
     title       varchar(255),
     content     text,
     tag_id      int unsigned comment '标签id',
+    views       bigint unsigned,
     create_time datetime,
     update_time datetime,
     status      tinyint,
@@ -32,6 +34,7 @@ create table news
     index create_time (create_time)
 );
 
+drop table if exists tags;
 create table tags
 (
     id          int unsigned primary key auto_increment,
@@ -42,9 +45,11 @@ create table tags
 ) comment '标签';
 
 
+drop table if exists comments;
 create table comments
 (
     id          int unsigned primary key auto_increment,
+    user_id     int unsigned,
     news_id     int unsigned,
     comment     varchar(255),
     create_time datetime,

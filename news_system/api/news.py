@@ -44,7 +44,7 @@ class TagsAPI(MethodView):
         if query.filter is not None:
             tags_query = tags_query.filter(Tags.tag.like(f'%{query.filter}%'))
 
-        tags = tags_query.paginate(page=query.page, per_page=query.size)  # 按条件查询tag
+        tags = tags_query.order_by(db.text('-update_time')).paginate(page=query.page, per_page=query.size)  # 按条件查询tag
         items = [tag.to_dict() for tag in tags.items]  # 列表生成器
 
         return response_json(data={
@@ -52,7 +52,8 @@ class TagsAPI(MethodView):
             'page': tags.page,
             'size': tags.per_page,
             'pages': tags.pages,
-            'total': tags.total
+            'total': tags.total,
+            'has_more': tags.has_next,
         })
 
     @staticmethod
