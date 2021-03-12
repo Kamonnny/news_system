@@ -18,7 +18,7 @@ class Comments(db.Model):
     def to_dict(self):
         return {
             "comment_id": self.id,
-            "user": Users.query.filter_by(id=self.user_id).first(),
+            "username": Users.query.filter_by(id=self.user_id).first().username,
             "news_id": self.news_id,
             "comment": self.comment,
             "create_time": str(self.create_time),

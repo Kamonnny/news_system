@@ -32,3 +32,5 @@ class Users(db.Model):
         :return: 密码是否正确
         """
         return check_password_hash(self.password, password)
+
+

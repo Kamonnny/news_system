@@ -7,19 +7,25 @@ from news_system.exception import APIError
 from news_system.model.users import Users
 
 
-def get_token() -> str:
+def get_user_by_token() -> dict:
     """
-    从请求头获取token
+    从请求头获取token，并验证取得 user_id
     :return: token
     """
     try:
         token_type, token = request.headers["Authorization"].split(None, 1)
     except (KeyError, ValueError):
         raise APIError(msg="请重新登录", code=401)
-    else:
-        if token == "null" or token_type.lower() != "bearer":
-            raise APIError(msg="请重新登录", code=401)
-        return token
+
+    if token == "null" or token_type.lower() != "bearer":
+        raise APIError(msg="请重新登录", code=401)
+
+    # 到这里就拿到了，从前端传过来的token
+
+    # 验证一下token合法性，并获得token里面的数据
+    token = validate_token(token, token_type="ACCESS_TOKEN")
+
+    request.user = Users.query.filter_by(id=token['id']).first()
 
 
 def create_token(user: Users) -> dict:

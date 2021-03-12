@@ -9,6 +9,7 @@ from news_system.extensions import db
 from news_system.model.comments import Comments
 from news_system.model.news import News
 from news_system.model.tags import Tags
+from news_system.utils.decorators import require_auth
 from news_system.utils.network import response_json
 
 news_bp = Blueprint("news", __name__)
@@ -149,10 +150,10 @@ class CommentsAPI(MethodView):
             'total': comments.total
         })
 
-    @staticmethod
-    def post(news_id: int) -> response_json:
+    @require_auth
+    def post(self, news_id: int) -> response_json:
         body = CommentPostModel(**request.get_json())
-        comment = Comments(comment=body.comment, news_id=news_id)
+        comment = Comments(comment=body.comment, news_id=news_id, user_id=request.user.id)
         db.session.add(comment)
         db.session.commit()
         return response_json(msg=f"评论成功")
