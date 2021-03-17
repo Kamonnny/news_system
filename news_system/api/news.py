@@ -4,6 +4,7 @@ from typing import Optional
 from flask import Blueprint, request
 from flask.views import MethodView
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 
 from news_system.extensions import db
 from news_system.model.comments import Comments
@@ -140,7 +141,8 @@ class CommentsAPI(MethodView):
     @staticmethod
     def get(news_id: int) -> response_json:
         query = FilterGetModel(**request.args)
-        comments = Comments.query.filter_by(news_id=news_id, status=0).paginate(page=query.page, per_page=query.size)
+        comments = Comments.query.filter_by(news_id=news_id, status=0).order_by(text('-update_time')).paginate(
+            page=query.page, per_page=query.size)
         items = [comment.to_dict() for comment in comments.items]  # 列表生成器
         return response_json(data={
             'items': items,

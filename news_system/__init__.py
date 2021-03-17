@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from news_system.api.auth import auth_bp
 from news_system.api.news import news_bp
+from news_system.api.user import users_bp
 from news_system.exception import APIError
 from news_system.extensions import cors, db
 from news_system.utils.network import response_json
@@ -36,6 +37,7 @@ def register_blueprints(app: Flask) -> NoReturn:
     """
     app.register_blueprint(auth_bp, url_prefix="/oauth")
     app.register_blueprint(news_bp, url_prefix="/news")
+    app.register_blueprint(users_bp, url_prefix="/users")
 
 
 def register_extensions(app: Flask) -> NoReturn:

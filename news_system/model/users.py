@@ -33,4 +33,8 @@ class Users(db.Model):
         """
         return check_password_hash(self.password, password)
 
-
+    def to_dict(self):
+        return {
+            "username": self.username,
+            "email": self.email
+        }

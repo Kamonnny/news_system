@@ -1,8 +1,8 @@
 from datetime import datetime
 
 from news_system.extensions import db
-from news_system.model.tags import Tags
 from news_system.model.comments import Comments
+from news_system.model.tags import Tags
 
 
 # noinspection PyUnresolvedReferences
