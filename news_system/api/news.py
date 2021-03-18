@@ -75,16 +75,23 @@ class NewsModel(BaseModel):
     tag_id: int = Field(ge=0)
 
 
+class NewsGetModel(FilterGetModel):
+    """ 查询新闻的参数校验 """
+    tag_id: Optional[int] = Field(ge=0)
+
+
 # noinspection DuplicatedCode
 class NewsAPI(MethodView):
 
     # noinspection PyUnresolvedReferences
     @staticmethod
     def get() -> response_json:
-        query = FilterGetModel(**request.args)
+        query = NewsGetModel(**request.args)
         news_query = News.query.filter_by(status=0)
-        if query.filter is not None:
-            news_query = news_query.filter(News.tag.like(f'%{query.filter}%'))
+        # if query.filter is not None:
+        #     news_query = news_query.filter(News.tag.like(f'%{query.filter}%'))
+        if query.tag_id is not None:
+            news_query = news_query.filter_by(tag_id=query.tag_id)
 
         news = news_query.paginate(page=query.page, per_page=query.size)
         items = [new.to_dict(level="main_list") for new in news.items]  # 列表生成器
