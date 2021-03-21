@@ -121,6 +121,9 @@ class NewAPI(MethodView):
         if new is None:
             return response_json(code=400, msg="该新闻不存在")
 
+        new.views += 1
+        db.session.add(new)
+        db.session.commit()
         return response_json(data=new.to_dict("main"))
 
     # noinspection PyUnresolvedReferences
