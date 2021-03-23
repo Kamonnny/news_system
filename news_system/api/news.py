@@ -10,7 +10,7 @@ from news_system.extensions import db
 from news_system.model.comments import Comments
 from news_system.model.news import News
 from news_system.model.tags import Tags
-from news_system.utils.decorators import require_auth
+from news_system.utils.decorators import require_auth, require_sudo
 from news_system.utils.network import response_json
 
 news_bp = Blueprint("news", __name__)
@@ -59,13 +59,38 @@ class TagsAPI(MethodView):
             'has_more': tags.has_next,
         })
 
-    @staticmethod
-    def post() -> response_json:
+    # noinspection PyUnresolvedReferences
+    @require_auth
+    @require_sudo
+    def post(self) -> response_json:
         body = TagsPostModel(**request.get_json())
+        tags = Tags.query.count()
+        if tags >= 10:
+            return response_json(code=400, msg="标签达到上限")
         tag = Tags(tag=body.tag)
         db.session.add(tag)
         db.session.commit()
         return response_json(msg=f"{body.tag} 创建成功")
+
+
+class TagAPI(MethodView):
+    # noinspection PyUnresolvedReferences
+    @require_auth
+    @require_sudo
+    def delete(self, tag_id: int) -> response_json:
+        news = News.query.filter_by(status=0, tag_id=tag_id).first()
+        if news:
+            return response_json(code=400, msg="该标签下存在新闻")
+
+        tag = Tags.query.filter_by(id=tag_id, status=0).first()
+        if not tag:
+            return response_json(code=400, msg="该标签不存在")
+
+        tag.status = 1
+        db.session.add(tag)
+        db.session.commit()
+
+        return response_json(msg='删除成功')
 
 
 class NewsModel(BaseModel):
@@ -175,3 +200,4 @@ news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET",
 news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT",))
 news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
+news_bp.add_url_rule(rule="/tags/<int:tag_id>", view_func=TagAPI.as_view("tag"), methods=("DELETE",))
