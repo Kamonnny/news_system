@@ -64,7 +64,7 @@ class TagsAPI(MethodView):
     @require_sudo
     def post(self) -> response_json:
         body = TagsPostModel(**request.get_json())
-        tags = Tags.query.count()
+        tags = Tags.query.filter_by(status=0).count()
         if tags >= 10:
             return response_json(code=400, msg="标签达到上限")
         tag = Tags(tag=body.tag)
@@ -91,6 +91,21 @@ class TagAPI(MethodView):
         db.session.commit()
 
         return response_json(msg='删除成功')
+
+    # noinspection PyUnresolvedReferences
+    @require_auth
+    @require_sudo
+    def put(self, tag_id: int) -> response_json:
+        body = TagsPostModel(**request.get_json())
+        tag = Tags.query.filter_by(id=tag_id, status=0).first()
+        if not tag:
+            return response_json(code=400, msg="该标签不存在")
+
+        tag.tag = body.tag
+        db.session.add(tag)
+        db.session.commit()
+
+        return response_json()
 
 
 class NewsModel(BaseModel):
@@ -200,4 +215,4 @@ news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET",
 news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT",))
 news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
-news_bp.add_url_rule(rule="/tags/<int:tag_id>", view_func=TagAPI.as_view("tag"), methods=("DELETE",))
+news_bp.add_url_rule(rule="/tags/<int:tag_id>", view_func=TagAPI.as_view("tag"), methods=("DELETE", "PUT"))
