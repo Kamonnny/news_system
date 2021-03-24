@@ -29,6 +29,8 @@ class News(db.Model):
         }
 
         if level == "main_list":
+            tag = Tags.query.filter_by(id=self.tag_id).first()
+            data["tag"] = tag.to_dict() if tag else None
             comments_count = Comments.query.filter_by(news_id=self.id).count()
             data["comments_count"] = comments_count
             data['content'] = f"{self.content[:40]}..." if len(self.content) > 40 else self.content

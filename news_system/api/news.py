@@ -128,8 +128,8 @@ class NewsAPI(MethodView):
     def get() -> response_json:
         query = NewsGetModel(**request.args)
         news_query = News.query.filter_by(status=0)
-        # if query.filter is not None:
-        #     news_query = news_query.filter(News.tag.like(f'%{query.filter}%'))
+        if query.filter is not None:
+            news_query = news_query.filter(News.title.like(f'%{query.filter}%'))
         if query.tag_id is not None:
             news_query = news_query.filter_by(tag_id=query.tag_id)
 
@@ -181,6 +181,22 @@ class NewAPI(MethodView):
         db.session.commit()
         return response_json(msg=f"{body.title} 修改成功")
 
+    # noinspection PyUnresolvedReferences
+    @require_auth
+    @require_sudo
+    def delete(self, news_id: int) -> response_json:
+        """
+        删除新闻
+        """
+        new = News.query.filter_by(id=news_id, status=0).first()
+        if new is None:
+            return response_json(code=400, msg="该新闻不存在")
+
+        new.status = 1
+        db.session.add(new)
+        db.session.commit()
+        return response_json(msg=f"新闻删除成功")
+
 
 class CommentPostModel(BaseModel):
     comment: str = Field(max_length=255)
@@ -212,7 +228,7 @@ class CommentsAPI(MethodView):
 
 
 news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET", "POST"))
-news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT",))
+news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT", "DELETE"))
 news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags/<int:tag_id>", view_func=TagAPI.as_view("tag"), methods=("DELETE", "PUT"))
