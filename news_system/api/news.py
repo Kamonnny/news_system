@@ -12,6 +12,7 @@ from news_system.model.news import News
 from news_system.model.tags import Tags
 from news_system.utils.decorators import require_auth, require_sudo
 from news_system.utils.network import response_json
+from news_system.model.users import Users
 
 news_bp = Blueprint("news", __name__)
 
@@ -243,9 +244,18 @@ def get_comments() -> response_json:
         news_ids = [item.id for item in news]
         comments_query = Comments.query.filter_by(status=0).filter(Comments.news_id.in_(news_ids))
 
-    comments = comments_query.order_by(text('-update_time')).paginate(page=query.page, per_page=query.size)
+    comments = comments_query.order_by(text('news_id, -update_time')).paginate(page=query.page, per_page=query.size)
 
-    items = [comment.to_dict() for comment in comments.items]  # 列表生成器
+    items = list(map(lambda item: {
+        "comment_id": item.id,
+        "username": Users.query.filter_by(id=item.user_id).first().username,
+        "news": News.query.filter_by(id=item.news_id).first().title,
+        "news_id": item.news_id,
+        "comment": item.comment,
+        "create_time": str(item.create_time),
+        "update_time": str(item.update_time)
+    }, comments.items))
+
     return response_json(data={
         'items': items,
         'page': comments.page,

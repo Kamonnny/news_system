@@ -15,8 +15,8 @@ class Comments(db.Model):
     update_time = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
     # noinspection PyUnresolvedReferences
-    def to_dict(self):
-        return {
+    def to_dict(self, level="default"):
+        data = {
             "comment_id": self.id,
             "username": Users.query.filter_by(id=self.user_id).first().username,
             "news_id": self.news_id,
@@ -24,3 +24,5 @@ class Comments(db.Model):
             "create_time": str(self.create_time),
             "update_time": str(self.update_time)
         }
+
+        return data
