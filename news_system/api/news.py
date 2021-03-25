@@ -134,7 +134,7 @@ class NewsAPI(MethodView):
         if query.tag_id is not None:
             news_query = news_query.filter_by(tag_id=query.tag_id)
 
-        news = news_query.paginate(page=query.page, per_page=query.size)
+        news = news_query.order_by(text('-create_time')).paginate(page=query.page, per_page=query.size)
         items = [new.to_dict(level="main_list") for new in news.items]  # 列表生成器
 
         return response_json(data={
