@@ -144,8 +144,9 @@ class NewsAPI(MethodView):
             'total': news.total
         })
 
-    @staticmethod
-    def post() -> response_json:
+    @require_auth
+    @require_sudo
+    def post(self) -> response_json:
         body = NewsModel(**request.get_json())
         new = News(**body.dict())
         db.session.add(new)
@@ -167,8 +168,9 @@ class NewAPI(MethodView):
         return response_json(data=new.to_dict("main"))
 
     # noinspection PyUnresolvedReferences
-    @staticmethod
-    def put(news_id: int) -> response_json:
+    @require_auth
+    @require_sudo
+    def put(self, news_id: int) -> response_json:
         body = NewsModel(**request.get_json())
         new = News.query.filter_by(id=news_id, status=0).first()
         if new is None:
@@ -202,7 +204,7 @@ class CommentPostModel(BaseModel):
     comment: str = Field(max_length=255)
 
 
-class CommentsAPI(MethodView):
+class NewsCommentsAPI(MethodView):
     # noinspection PyUnresolvedReferences
     @staticmethod
     def get(news_id: int) -> response_json:
@@ -227,8 +229,50 @@ class CommentsAPI(MethodView):
         return response_json(msg=f"评论成功")
 
 
+# noinspection PyUnresolvedReferences
+@news_bp.route('/comments', methods=("GET",))
+@require_auth
+@require_sudo
+def get_comments() -> response_json:
+    query = FilterGetModel(**request.args)
+
+    comments_query = Comments.query.filter_by(status=0)
+
+    if query.filter is not None:
+        news = News.query.filter(News.title.like(f'%{query.filter}%')).all()
+        news_ids = [item.id for item in news]
+        comments_query = Comments.query.filter_by(status=0).filter(Comments.news_id.in_(news_ids))
+
+    comments = comments_query.order_by(text('-update_time')).paginate(page=query.page, per_page=query.size)
+
+    items = [comment.to_dict() for comment in comments.items]  # 列表生成器
+    return response_json(data={
+        'items': items,
+        'page': comments.page,
+        'size': comments.per_page,
+        'pages': comments.pages,
+        'total': comments.total
+    })
+
+
+# noinspection PyUnresolvedReferences
+@news_bp.route('/comments/<int:comment_id>', methods=("DELETE",))
+@require_auth
+@require_sudo
+def delete_comments(comment_id) -> response_json:
+    comment = Comments.query.filter_by(id=comment_id, status=0).first()
+    if comment is None:
+        return response_json(code=400, msg="该评论不存在")
+
+    comment.status = 1
+    db.session.add(comment)
+    db.session.commit()
+    return response_json()
+
+
 news_bp.add_url_rule(rule="", view_func=NewsAPI.as_view("news"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/<int:news_id>", view_func=NewAPI.as_view("new"), methods=("GET", "PUT", "DELETE"))
-news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=CommentsAPI.as_view("comments"), methods=("GET", "POST"))
+news_bp.add_url_rule(rule="/<int:news_id>/comments", view_func=NewsCommentsAPI.as_view("NewsCommentsAPI"),
+                     methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags", view_func=TagsAPI.as_view("tags"), methods=("GET", "POST"))
 news_bp.add_url_rule(rule="/tags/<int:tag_id>", view_func=TagAPI.as_view("tag"), methods=("DELETE", "PUT"))

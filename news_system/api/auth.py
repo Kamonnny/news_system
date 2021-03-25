@@ -13,6 +13,7 @@ auth_bp = Blueprint("auth", __name__)
 class OauthPostModel(BaseModel):
     username: str = Field(min_length=1, max_length=30)
     password: str = Field(min_length=6)
+    check_admin: bool = Field(False)
 
 
 class OauthPutModel(BaseModel):
@@ -30,6 +31,9 @@ class OauthAPI(MethodView):
             return response_json(code=404, msg="用户不存在或者密码错误")
 
         if not user.validate_password(body.password):
+            return response_json(code=404, msg="用户不存在或者密码错误")
+
+        if body.check_admin and not user.is_admin:
             return response_json(code=404, msg="用户不存在或者密码错误")
 
         return response_json(msg="登录成功", data=create_token(user))
